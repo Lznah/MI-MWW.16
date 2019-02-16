@@ -1,0 +1,53 @@
+<div class"row">
+  <div class="col-md-12">
+    <h1>Image Similarity Based on Histogram</h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6" style="background-color: red">
+    <h2>Load image for comparison</h2>
+    <form id="upload-and-compare" method="post" enctype="multipart/form-data">
+      <input type="file" name="photo">
+      <button>Load!</button>
+    </form>
+  </div>
+  <div class="col-md-6" style="background-color: blue">
+    <h2>Load new image into database</h2>
+    <form id="upload-and-save" method="post" enctype="multipart/form-data">
+      <input type="file" name="photo">
+      <button>Load!</button>
+    </form>
+  </div>
+</div>
+<div class="row" style="margin-top: 15px">
+  <div class="col-md-9" style="text-align: center; display: flex;align-items: center; justify-content: center;">
+    <img id="compared_picture" src='data:image/jpeg;base64,' style="display: none">
+  </div>
+  <div class="col-md-3" style="text-align: center;">
+    <canvas id="histogram" width="255" height="450"></canvas>
+  </div>
+</div>
+<div class="row" style="margin-top: 15px; background-color: green">
+  <div class="col-md-12" style="background-color: green">
+    <h2>Method</h2>
+    <form method="post" id="compare">
+      <select name="distance">
+        <option value="bhattacharyya">Bhattacharyya Coefficient</option>
+        <option value="hamilton">L<sub>p</sub>1 - Manhattan Distance</option>
+        <option value="euclidean">L<sub>p</sub>2 - Euclidean Distance</option>
+        <option value="cosine">Cosine Distance</option>
+        <option value="intersection">Intersection</option>
+      </select>
+      <button>Compare</button>
+    </form>
+  </div>
+</div>
+<div class="row" style="margin-top: 15px; background-color: green; ">
+  <div class="col-md-12">
+    <h2>Results</h2>
+  </div>
+  <div class="col-md-12">
+    <div class="row" id="results">
+    </div>
+  </div>
+</div>

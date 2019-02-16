@@ -1,0 +1,199 @@
+\documentclass{report}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{lscape}
+\usepackage{rotating}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+
+% šablona z webu http://voho.cz
+
+\title{Image Histogram Based Similarity}
+\author{Petr Hanzl}
+
+% #########
+% # START #
+% #########
+
+\begin{document} 
+
+% titulní stránka
+\maketitle
+
+% obsah
+\tableofcontents
+
+% abstrakt
+\begin{abstract}
+Cílem projektu je vytvoření webové a serverové aplikace, která bude umožňovat nahrávání obrázků a porovnávání obrázků podle podobnosti histogramů RGB modelu několika podobnostními metrikami.  
+\end{abstract}
+
+% ########
+% # TEXT #
+% ########
+
+\chapter{Popis projektu}
+
+Obrázky lze evidentně porovnávat na základě histogramů. Sice porovnání histogramů nemusí vrátit geometricky podobné obrázky, ale za to se jedná o velice jednoduchou metodu. 
+
+\section{Vstupy, výstupy a cíl práce}
+Cílem této práce je tedy popsat možnosti výpočtu podobnosti obrázků založené na podobnosti histogramů. Uživatel vybere jeden obrázek, který je porovnán s databází obrázků a následně jsou uživateli vrácené obrázky, které jsou seřazené podle podobnosti s jeho vybraným obrázkem.
+
+\section{Implementace}
+	Webová aplikace je napsána v HTML, CSS, Javascriptu, přičemž využívám pouze knihovnu jQuery, Popper a Bootstrap.
+
+	Serverová aplikace je napsána v Node.js s využitím MongoDB, konkrétně nad knihovnou Express a mnohými dalšími. Za zmínku stojí knihovna \textbf{\href{https://www.npmjs.com/package/histogram}{histogram.js}}, která extrahuje RGB histogram z obrázků.
+
+\chapter{Způsob řešení}
+\section{Extrakce dat}
+	K extrakci RGB histogramů je použitá knihovna \textbf{\href{https://www.npmjs.com/package/histogram}{histogram.js}}.
+
+\section{Preprocessing}
+	Po extrakci histogramů je univerzum hodnot pro urychlení výpočtu zredukované do 16 hodnot.
+
+\section{Použité podobnostní metriky}
+	Všechny použité metriky jsou založeny bin-by-bin analýze histogramů, to znamená na porovnání četnosti odstínu barvy po četnosti odstínu barvy v druhém obrázku. Zároveň je využité i vlastnosti, kdy 3 složky barvy lze zapsat v bin-by-bin jako jeden vektor, čímž odpadá získání 3 nezávislých vzdáleností a jejich následná kombinace.
+	\subsection{Lp$_1$ - Manhattonská vzdálenost}
+	Manhattonská vzdálenost je jedna z nejzákladnějších Minkowských metrik. Porovnává dva stejně dlouhé vektory(řetezce) podle nejmenšího počtu záměn potřebných k převedení jednoho vektoru na druhý. Konkrétně definováva vztahem, kdy $a$ a $b$ jsou právě dva porovnávané vektory:
+	\begin{center}
+		$Lp_1(a_i,b_i) = \sum_{i=0}^n |a_i-b_i|$
+	\end{center}
+
+	Přičemž verze, která normalizuje vzdálenost na dimenzi vektoru $n$ je definována:
+
+	\begin{center}
+		$Lp_1(a_i,b_i) = \sum_{i=0}^n |a_i-b_i|/n$
+	\end{center}
+
+	\subsection{Lp$_2$ - Euklidovská vzdálenost}
+	Euklidovská vzdálenost je opět Minkowského metrika definována jako délka úsečky, která spojuje dva porovnávané vektory respektive body v prostoru. Definována vztahem:
+
+	\begin{center}
+		$Lp_1(a_i,b_i) = \sqrt{\sum_{i=0}^n (a_i-b_i)^2}$
+	\end{center}
+
+	Normalizovaná verze:
+	\begin{center}
+		$Lp_1(a_i,b_i) = \sqrt{\sum_{i=0}^n (a_i-b_i)^2/n}$
+	\end{center}
+
+	\subsection{Kosinová podobnost}
+	Kosinová podobnost je opět velmi známou metrikou, která podobnost dvou vektorů definuje jako úhel, který tyto dva vektory svírají.
+	Definice:
+	\begin{center}
+		$cos\theta = \dfrac{\sum_{i=0}^n (a_i*b_i)^2}{\sqrt{\sum_{i=0}^n (a_i)^2}\sqrt{\sum_{i=0}^n (b_i)^2}}$
+	\end{center}
+	\subsection{Brattacharyya Coefficient}
+	Suma odmocnin součinů složek vektorů a a b.
+	Definice: 
+
+	\begin{center}
+		$b(a,b) = \sum_{i=0}^{n}{\sqrt{(a_i b_i)}}$
+	\end{center}
+
+	\subsection{Intersection}
+	Průnik složek histogramů, přičemž vzdálenost je definována:
+
+	\begin{center}
+		$d(a,b) = \sum_{i=0}^{n}{min(a_i b_i)}$
+	\end{center}
+
+	Normalizovaná verze:
+	\begin{center}
+		$d(a,b) = \frac{\sum_{i=0}^{n}{min(a_i b_i)}}{max(\sum_{i=0}^{n}{a_i},\sum_{i=0}^{n}{b_i})}$
+	\end{center}
+
+
+\clearpage
+\section{Experimentální část}
+	\subsection{Fotka ženy}
+	Z obrázků níže je zřetelně vidět, jakými neduhy metody porovnání histogramu trpí. A to především tím, že porovnává pouze barvy respektive histogramy, nikoliv co doopravdy na obrázku je. Ačkoliv pro metriku průniku histogramů a manhattonovu vzdálelost se může zdát, že obrázek s největší podobností byl vrácen správně, tak vzhledem k výsledkům respektive podobnostím k ostatním fotkám žen se nedá prohlásit, že výsledek je relevantní.
+
+	\begin{figure}[ht]
+	    \includegraphics[width=\textwidth]{images/zena/porovnany.jpg}
+	    \caption{Testovaná fotka ženy}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+  \begin{landscape}
+    \begin{figure}
+	    \includegraphics[width=\paperwidth]{images/zena/brattacharyya.png}
+	    \caption{Výsledky pro Brattacharyya koeficient}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/zena/manhatton.png}
+	    \caption{Výsledky pro Manhattonovu vzdálenost}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/zena/euclid.png}
+	    \caption{Výsledky pro Euklidovskou vzdálenost}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/zena/cosine.png}
+	    \caption{Výsledky pro Kosinovu vzdálenost}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/zena/intersection.png}
+	    \caption{Výsledky pro metodu intersekce histogramů}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+  \end{landscape}
+
+
+	\subsection{Fotka ostrova}
+	Narozdíl od předchozího obrázku, pro obrázek ostrova vrací algoritmy relativnější výsledky. Opět z obrázků níže, lze nyní zpozorovat, že algoritmus vrací z větší části relevantní výsledky, protože porovnává barvy, nikoliv sémantiku obrázku, což zrovna u obrázků ostrovů, kde je každý ostrov jinak tvarovaný, jinak členěný, je porovnání barvy výhoda.
+	\begin{figure}[ht]
+	    \includegraphics[width=\textwidth]{images/ostrov/porovnany.jpg}
+	    \caption{Testovaný obrázek ostrova}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+\begin{landscape}
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/ostrov/brattacharyya.png}
+	    \caption{Výsledky pro Brattacharyya koeficient}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/ostrov/manhatton.png}
+	    \caption{Výsledky pro Manhattonovu vzdálenost}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/ostrov/euclid.png}
+	    \caption{Výsledky pro Euklidovskou vzdálenost}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/ostrov/cosine.png}
+	    \caption{Výsledky pro Kosinovu vzdálenost}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+
+	\begin{figure}
+	    \includegraphics[width=\paperwidth]{images/ostrov/intersection.png}
+	    \caption{Výsledky pro metodu intersekce histogramů}
+	    \label{fig:LandscapeFigure}
+	\end{figure}
+\end{landscape}
+
+\chapter*{Diskuze a závěr}
+
+Aplikace byla úspěšně naprogramována o otestována, zárověn byly pro několik podobnostních metrik ukázány výhody a nevýhody porovnávání obrázků na základě porovnání jejich histogramů. Původně jsem plánoval, že obrázků bude mnohem více a snažil jsem se kvůli tomu nastavit serverou část tak, aby porovnávání s velkým počtem obrázkům netrvalo neúsnosně dlouho. Proto je využit i binning u histogramů, ačkoliv to v takovém počtu obrázků není nutné, zároveň takto zpracované histogramy jsou ukládané(cachované) do databáze. Lze se domnívat, že pro velmi rozsáhlou databázi obrázků by výsledky podobných obrázků byly mnohem relevantnější.
+% #########
+% # KONEC #
+% #########
+
+\end{document}
